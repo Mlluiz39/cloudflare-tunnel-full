@@ -41,20 +41,20 @@ chmod +x ./cloudflare-tunnel-manager.sh
 
 O script abre um menu interativo com várias opções:
 
-  Opção   Função
-  ------- ----------------------------------
-  1️⃣      Instalar **cloudflared**
-  2️⃣      Autenticar com Cloudflare
-  3️⃣      Criar novo túnel
-  4️⃣      Editar configuração do túnel
-  5️⃣      Roteamento de subdomínios
-  6️⃣      Rodar túnel manualmente
-  7️⃣      Habilitar/desabilitar auto-start
-  8️⃣      Gerenciar serviço do túnel
-  9️⃣      Deletar serviço **systemd**
-  🔟      Desinstalação completa
-  1️⃣1️⃣    Deletar túnel específico
-  0️⃣      Sair
+| Opção | Função |
+|-------|--------|
+| 1️⃣   | Instalar **cloudflared** |
+| 2️⃣   | Autenticar com Cloudflare |
+| 3️⃣   | Criar novo túnel |
+| 4️⃣   | Editar configuração do túnel |
+| 5️⃣   | Roteamento de subdomínios |
+| 6️⃣   | Rodar túnel manualmente |
+| 7️⃣   | Habilitar/desabilitar auto-start |
+| 8️⃣   | Gerenciar serviço do túnel |
+| 9️⃣   | Deletar serviço **systemd** |
+| 🔟   | Desinstalação completa |
+| 1️⃣1️⃣ | Deletar túnel específico |
+| 0️⃣   | Sair |
 
 ## 📂 Estrutura de Diretórios
 
@@ -98,7 +98,7 @@ Ativar auto-start:
 
 ## 👨‍💻 Autor
 
-**Marcelo Luiz Souza**\
+**Marcelo Luiz**\
 🌐 [GitHub](https://github.com/mlluiz39)
 
 Sinta-se à vontade para abrir **issues** ou sugerir melhorias 🚀
