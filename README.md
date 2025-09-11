@@ -42,7 +42,7 @@ chmod +x ./cloudflare-tunnel-manager.sh
 O script abre um menu interativo com várias opções:
 
   Opção   Função
-
+  ------- ----------------------------------
   1️⃣      Instalar **cloudflared**
   2️⃣      Autenticar com Cloudflare
   3️⃣      Criar novo túnel
@@ -68,8 +68,8 @@ As configurações e credenciais ficam em:
 ```
 
 ⚠️ **Atenção:**\
-. Evite editar `/etc/cloudflared/config.yml` diretamente.\
-. O script já remove conflitos de configuração ao habilitar auto-start.
+- Evite editar `/etc/cloudflared/config.yml` diretamente.\
+- O script já remove conflitos de configuração ao habilitar auto-start.
 
 ------------------------------------------------------------------------
 
