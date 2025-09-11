@@ -1,8 +1,8 @@
 # 🚀 Cloudflare Tunnel Manager
 
-[![Release](https://img.shields.io/github/v/release/mlluiz39/cloudflare-tunnel-manager?color=blue&label=Release)](https://github.com/mlluiz39/cloudflare-tunnel-manager/releases)\
-[![License](https://img.shields.io/github/license/mlluiz39/cloudflare-tunnel-manager?color=green)](https://github.com/mlluiz39/cloudflare-tunnel-manager/blob/main/LICENSE)\
-[![Issues](https://img.shields.io/github/issues/mlluiz39/cloudflare-tunnel-manager?color=yellow)](https://github.com/mlluiz39/cloudflare-tunnel-manager/issues)
+[![Release](https://img.shields.io/github/v/release/mlluiz39/cloudflare-tunnel-full?color=blue&label=Release)](https://github.com/mlluiz39/cloudflare-tunnel-full/releases)\
+[![License](https://img.shields.io/github/license/mlluiz39/cloudflare-tunnel-full?color=green)](https://github.com/mlluiz39/cloudflare-tunnel-full/blob/main/LICENSE)\
+[![Issues](https://img.shields.io/github/issues/mlluiz39/cloudflare-tunnel-full?color=yellow)](https://github.com/mlluiz39/cloudflare-tunnel-full/issues)
 
 Um **script Bash interativo** para gerenciar **Cloudflare Tunnels**
 diretamente do terminal.\
@@ -29,10 +29,10 @@ Crie, configure, rode e limpe túneis com facilidade.\
 Clone o repositório e dê permissão de execução:
 
 ``` bash
-git clone https://github.com/mlluiz39/cloudflare-tunnel-manager.git
-cd cloudflare-tunnel-manager
-chmod +x ./cloudflare-tunnel-manager.sh
-./cloudflare-tunnel-manager.sh
+git clone https://github.com/mlluiz39/cloudflare-tunnel-full.git
+cd cloudflare-tunnel-full
+chmod +x ./cloudflare-tunnel-full.sh
+./cloudflare-tunnel-full.sh
 ```
 
 ------------------------------------------------------------------------
@@ -78,7 +78,7 @@ As configurações e credenciais ficam em:
 Rodar túnel manualmente:
 
 ``` bash
-./cloudflare-tunnel-manager.sh
+./cloudflare-tunnel-full.sh
 # Escolher opção 6
 ```
 
