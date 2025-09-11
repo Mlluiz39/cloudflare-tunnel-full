@@ -55,7 +55,6 @@ create_tunnel() {
   echo "⛏️  Creating tunnel '$TUNNEL_NAME'..."
   cloudflared tunnel create "$TUNNEL_NAME"
 
-  echo "🔍 Getting Tunnel ID..."
   TUNNEL_ID=$(cloudflared tunnel list | awk -v name="$TUNNEL_NAME" '$2 == name {print $1; exit}')
   CREDENTIALS_FILE="$CLOUDFLARED_DIR/$TUNNEL_ID.json"
   TUNNEL_CONFIG="$CLOUDFLARED_DIR/$TUNNEL_NAME.yml"
@@ -65,19 +64,19 @@ create_tunnel() {
     return 1
   fi
 
-  # Coletar subdomínios do usuário
   echo "📝 Enter subdomains to route to this tunnel (type 'done' when finished):"
   INGRESS_RULES=""
+  SUBDOMAINS=()
   while true; do
     read -p "Subdomain: " DOMAIN
     [ "$DOMAIN" == "done" ] && break
     read -p "Local service port for $DOMAIN (default 80): " PORT
     PORT=${PORT:-80}
     INGRESS_RULES+="  - hostname: $DOMAIN\n    service: http://localhost:$PORT\n"
+    SUBDOMAINS+=("$DOMAIN")
   done
   INGRESS_RULES+="  - service: http_status:404\n"
 
-  # Criar YAML automaticamente
   echo -e "tunnel: $TUNNEL_ID
 credentials-file: $CREDENTIALS_FILE
 
@@ -86,7 +85,19 @@ $INGRESS_RULES" > "$TUNNEL_CONFIG"
 
   echo "✅ Tunnel '$TUNNEL_NAME' and subdomains configured successfully."
   echo "📄 Config file: $TUNNEL_CONFIG"
-  echo "🔙 Use option 7 to enable auto-start or 6 to run manually."
+
+  # 🚀 Roteamento automático de DNS para todos os subdomínios
+  if [ ${#SUBDOMAINS[@]} -gt 0 ]; then
+    echo "🌐 Routing subdomains to tunnel..."
+    for SD in "${SUBDOMAINS[@]}"; do
+      OUTPUT=$(cloudflared tunnel route dns "$TUNNEL_NAME" "$SD" 2>&1)
+      if echo "$OUTPUT" | grep -q "already configured"; then
+        echo "⚠️  $SD already routed."
+      else
+        echo "✅ Routed $SD"
+      fi
+    done
+  fi
 }
 
 edit_tunnel_config() {
@@ -102,9 +113,9 @@ tunnel: $TUNNEL_ID
 credentials-file: $CREDENTIALS_FILE
 
 ingress:
-  - hostname: dev.fortunedevs.com
+  - hostname: dev.example.com
     service: http://localhost:80
-  - hostname: admin.fortunedevs.com
+  - hostname: admin.example.com
     service: http://localhost:8080
   - service: http_status:404
 EOF
@@ -131,7 +142,19 @@ route_dns() {
 run_tunnel() {
   select_tunnel || return 1
   TUNNEL_CONFIG="$CLOUDFLARED_DIR/$TUNNEL_NAME.yml"
-  [ -f "$TUNNEL_CONFIG" ] || { echo "❌ Config not found: $TUNNEL_CONFIG"; return 1; }
+
+  if [ ! -f "$TUNNEL_CONFIG" ]; then
+    echo "❌ Config not found: $TUNNEL_CONFIG"
+    return 1
+  fi
+
+  CREDENTIALS_FILE=$(grep 'credentials-file:' "$TUNNEL_CONFIG" | awk '{print $2}')
+  if [ ! -f "$CREDENTIALS_FILE" ]; then
+    echo "❌ Credentials file not found: $CREDENTIALS_FILE"
+    return 1
+  fi
+
+  echo "🚀 Running tunnel $TUNNEL_NAME with config $TUNNEL_CONFIG"
   cloudflared tunnel --config "$TUNNEL_CONFIG" run "$TUNNEL_NAME"
 }
 
@@ -146,16 +169,35 @@ toggle_autostart() {
 
   case "$action" in
     1)
-      echo "⚙️ Enabling systemd service cloudflared@$TUNNEL_NAME.service"
+      if [ ! -f /etc/systemd/system/cloudflared@.service ]; then
+        echo "❌ Generic systemd service not found. Creating..."
+        sudo tee /etc/systemd/system/cloudflared@.service > /dev/null <<EOF
+[Unit]
+Description=Cloudflare Tunnel %i
+After=network.target
+
+[Service]
+Type=simple
+User=$USERNAME
+ExecStart=/usr/local/bin/cloudflared tunnel --config $CLOUDFLARED_DIR/%i.yml run %i
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
+EOF
+        sudo systemctl daemon-reload
+        echo "✅ Generic systemd service created."
+      fi
+
       sudo systemctl enable cloudflared@"$TUNNEL_NAME".service
       sudo systemctl start cloudflared@"$TUNNEL_NAME".service
-      echo "✅ Auto-start enabled."
+      echo "✅ Auto-start enabled for tunnel '$TUNNEL_NAME'."
       ;;
     2)
-      echo "🛑 Disabling service cloudflared@$TUNNEL_NAME.service"
       sudo systemctl stop cloudflared@"$TUNNEL_NAME".service
       sudo systemctl disable cloudflared@"$TUNNEL_NAME".service
-      echo "✅ Auto-start disabled."
+      echo "✅ Auto-start disabled for tunnel '$TUNNEL_NAME'."
       ;;
     *)
       echo "❌ Invalid choice."
@@ -184,11 +226,9 @@ delete_tunnel() {
   TUNNEL_ID=$(cloudflared tunnel list | awk -v name="$TUNNEL_NAME" '$2 == name {print $1; exit}')
   [ -n "$TUNNEL_ID" ] || { echo "❌ Tunnel not found"; return 1; }
 
-  echo "🛑 Stopping service..."
   sudo systemctl stop cloudflared@"$TUNNEL_NAME".service 2>/dev/null
   sudo systemctl disable cloudflared@"$TUNNEL_NAME".service 2>/dev/null
 
-  echo "🧹 Deleting tunnel..."
   cloudflared tunnel cleanup "$TUNNEL_NAME"
   cloudflared tunnel delete "$TUNNEL_NAME"
 
