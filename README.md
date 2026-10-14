@@ -31,8 +31,8 @@ Clone o repositório e dê permissão de execução:
 ``` bash
 git clone https://github.com/mlluiz39/cloudflare-tunnel-full.git
 cd cloudflare-tunnel-full
-chmod +x ./cloudflare-tunnel-full.sh
-./cloudflare-tunnel-full.sh
+chmod +x cloudflare-tunnel-manager-v2.sh
+./cloudflare-tunnel-manager-v2.sh
 ```
 
 ------------------------------------------------------------------------
@@ -43,17 +43,17 @@ O script abre um menu interativo com várias opções:
 
 | Opção | Função |
 |-------|--------|
-| 1️⃣   | Instalar **cloudflared** |
+| 1️⃣   | Instalar ou atualizar **Cloudflared** |
 | 2️⃣   | Autenticar com Cloudflare |
-| 3️⃣   | Criar novo túnel |
-| 4️⃣   | Editar configuração do túnel |
-| 5️⃣   | Roteamento de subdomínios |
-| 6️⃣   | Rodar túnel manualmente |
-| 7️⃣   | Habilitar/desabilitar auto-start |
-| 8️⃣   | Gerenciar serviço do túnel |
-| 9️⃣   | Deletar serviço **systemd** |
-| 🔟   | Desinstalação completa |
-| 1️⃣1️⃣ | Deletar túnel específico |
+| 3️⃣   | Criar túnel e configurar subdomínios |
+| 4️⃣   | Editar e validar configurações |
+| 5️⃣   | Criar registros DNS |
+| 6️⃣   | Executar túnel manualmente |
+| 7️⃣   | Ativar ou desativar inicialização automática |
+| 8️⃣   | Gerenciar serviço e visualizar logs |
+| 9️⃣   | Fazer backup das configurações |
+| 🔟   | Excluir túnel com confirmação |
+| 1️⃣1️⃣ | Desinstalar Cloudflared preservando configurações |
 | 0️⃣   | Sair |
 
 ## 📂 Estrutura de Diretórios
