@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data:; script-src 'self'; connect-src 'self'">
+  <title>Cloudflare Tunnel Manager</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-container">
+    <!-- ===================== SIDEBAR ===================== -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand">
+          <div class="brand-icon">⚡</div>
+          <div>
+            <div class="brand-title">CF Manager</div>
+            <div class="brand-subtitle" id="brand-version">v3.1</div>
+          </div>
+        </div>
+
+        <nav class="nav-menu">
+          <button class="nav-item active" data-view="dashboard"><span>📊</span> Dashboard</button>
+          <button class="nav-item" data-view="create"><span>🚀</span> Novo Subdomínio</button>
+          <button class="nav-item" data-view="editor"><span>📝</span> Editor de Ingress</button>
+          <button class="nav-item" data-view="dns"><span>🌐</span> Registros DNS</button>
+          <button class="nav-item" data-view="service"><span>⚙️</span> Serviço &amp; Logs</button>
+          <button class="nav-item" data-view="settings"><span>🔧</span> Configurações</button>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-status" id="sidebar-status">
+          <div class="status-line">
+            <span class="status-dot" id="dot-cli"></span>
+            <span id="label-cli">cloudflared: verificando…</span>
+          </div>
+          <div class="status-line">
+            <span class="status-dot" id="dot-auth"></span>
+            <span id="label-auth">autenticação: verificando…</span>
+          </div>
+          <div class="status-line">
+            <span class="status-dot online" id="dot-service"></span>
+            <span id="label-service">serviço: —</span>
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-block" data-action="login" id="btn-login-sidebar">🔑 Autenticar Cloudflare</button>
+        <button class="btn btn-secondary btn-block" data-action="open-config-dir">📁 Abrir ~/.cloudflared</button>
+      </div>
+    </aside>
+
+    <!-- ===================== MAIN ====================== -->
+    <main class="main-content">
+      <header class="top-bar">
+        <div class="page-title">
+          <h1 id="view-title">Dashboard de Túneis</h1>
+          <p id="view-subtitle">Gerencie seus túneis e serviços nativos do SO</p>
+        </div>
+        <div class="actions-group">
+          <button class="btn btn-secondary" data-action="refresh">🔄 Atualizar</button>
+          <button class="btn btn-primary" data-action="goto-create">🚀 Novo subdomínio</button>
+        </div>
+      </header>
+
+      <div class="view-host">
+        <!-- =================== DASHBOARD =================== -->
+        <section class="view-panel active" id="view-dashboard">
+          <div id="dashboard-alerts"></div>
+          <div class="cards-grid" id="tunnels-list">
+            <div class="empty-state"><div class="empty-icon">⏳</div><p>Carregando túneis…</p></div>
+          </div>
+          <div id="orphans-section"></div>
+        </section>
+
+        <!-- ================ NOVO SUBDOMÍNIO ================ -->
+        <section class="view-panel" id="view-create">
+          <div id="create-prereqs"></div>
+
+          <div class="panel">
+            <h2 class="panel-title">1. Escolha o endereço</h2>
+            <p class="panel-hint">Digite só o começo do endereço — o domínio é escolhido ao lado.
+              É esse hostname que as pessoas vão abrir no navegador.</p>
+            <div class="subdomain-builder">
+              <input type="text" class="form-control" id="publish-subdomain"
+                     placeholder="api" autocomplete="off" spellcheck="false">
+              <span class="subdomain-dot">.</span>
+              <select class="form-control" id="publish-domain"></select>
+              <input type="text" class="form-control hidden" id="publish-domain-custom"
+                     placeholder="meudominio.com" autocomplete="off" spellcheck="false">
+            </div>
+            <div class="hostname-preview" id="publish-preview">
+              <span class="hostname-preview-label">endereço final</span>
+              <code id="publish-preview-value">—</code>
+            </div>
+            <div class="hostname-status" id="publish-hostname-status"></div>
+            <div class="field-error" id="publish-error"></div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">2. Para onde o subdomínio aponta</h2>
+            <p class="panel-hint">O serviço que está rodando na sua máquina (ex.: seu app em
+              <code>localhost:8090</code>).</p>
+            <div class="inline-row wrap">
+              <select class="form-control input-sm" id="publish-scheme">
+                <option value="http">http</option>
+                <option value="https">https</option>
+              </select>
+              <input type="text" class="form-control input-sm" id="publish-port"
+                     placeholder="porta (ex.: 8090)" autocomplete="off">
+              <button class="btn btn-secondary btn-sm" data-action="publish-test-local">🔍 Testar conexão</button>
+            </div>
+            <div class="hint-line" id="publish-local-result">Ainda não testado.</div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">3. Túnel e opções</h2>
+            <div class="mode-options">
+              <label class="mode-option">
+                <input type="radio" name="tunnel-mode" value="new" checked>
+                <div>
+                  <strong>Criar um túnel novo</strong>
+                  <div class="hint-line">Um túnel dedicado a este subdomínio (nome = o que você digitou).</div>
+                </div>
+              </label>
+              <label class="mode-option">
+                <input type="radio" name="tunnel-mode" value="existing">
+                <div>
+                  <strong>Reaproveitar um túnel existente</strong>
+                  <div class="hint-line">Vários subdomínios no mesmo túnel (um conector só).</div>
+                  <select class="form-control input-sm" id="publish-existing-tunnel" style="margin-top:8px;"></select>
+                </div>
+              </label>
+            </div>
+
+            <details class="advanced-block">
+              <summary>Opções avançadas</summary>
+              <div class="advanced-grid">
+                <label class="field-label" for="publish-path">Path (opcional)</label>
+                <input type="text" class="form-control" id="publish-path" placeholder="/ (deixe vazio)">
+                <label class="field-label" for="publish-tunnel-name">Nome do túnel novo</label>
+                <input type="text" class="form-control" id="publish-tunnel-name" placeholder="padrão: o subdomínio">
+                <label class="checkbox-line"><input type="checkbox" id="publish-create-dns" checked> Criar registro DNS</label>
+                <label class="checkbox-line"><input type="checkbox" id="publish-start-service" checked> Iniciar o serviço agora</label>
+                <label class="checkbox-line"><input type="checkbox" id="publish-autostart"> Ativar no boot</label>
+              </div>
+            </details>
+
+            <div class="panel-actions">
+              <button class="btn btn-primary" data-action="publish-subdomain" id="btn-publish">🚀 Criar subdomínio</button>
+            </div>
+          </div>
+
+          <div class="panel hidden" id="publish-timeline-panel">
+            <h2 class="panel-title">Progresso</h2>
+            <ol class="timeline" id="publish-timeline"></ol>
+            <div id="publish-result"></div>
+          </div>
+        </section>
+
+        <!-- ==================== EDITOR ==================== -->
+        <section class="view-panel" id="view-editor">
+          <div class="panel">
+            <div class="inline-row">
+              <label for="select-editor">Túnel:</label>
+              <select class="form-control" id="select-editor"></select>
+              <button class="btn btn-secondary btn-sm" data-action="scaffold-config">🩹 Gerar config</button>
+              <button class="btn btn-secondary btn-sm" data-action="refresh-editor">🔄 Recarregar</button>
+            </div>
+            <div id="editor-status" class="hint-line"></div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Rotas detectadas</h2>
+            <div id="editor-routes" class="route-table"></div>
+            <div class="inline-row wrap">
+              <input type="text" class="form-control" id="quick-hostname" placeholder="novo.exemplo.com">
+              <input type="text" class="form-control" id="quick-port" placeholder="porta (ex.: 3000)">
+              <select class="form-control" id="quick-scheme">
+                <option value="http">http</option>
+                <option value="https">https</option>
+              </select>
+              <button class="btn btn-secondary btn-sm" data-action="quick-add-route">➕ Inserir no YAML</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Arquivo YAML</h2>
+            <textarea class="form-control code-editor" id="editor-content" spellcheck="false" rows="16"></textarea>
+            <div class="panel-actions">
+              <div class="inline-row">
+                <select class="form-control" id="select-backup"><option value="">Restaurar backup…</option></select>
+                <button class="btn btn-secondary btn-sm" data-action="restore-backup">↩ Restaurar</button>
+              </div>
+              <button class="btn btn-secondary" data-action="validate-editor">✔ Validar</button>
+              <button class="btn btn-primary" data-action="save-editor">💾 Salvar</button>
+            </div>
+            <p class="panel-hint">O arquivo é validado <strong>antes</strong> de ser gravado: se estiver inválido,
+              o conteúdo atual continua intacto (e um backup é guardado a cada salvamento).</p>
+          </div>
+        </section>
+
+        <!-- ===================== DNS ====================== -->
+        <section class="view-panel" id="view-dns">
+          <div class="panel">
+            <h2 class="panel-title">Criar registros DNS</h2>
+            <p class="panel-hint">Cria o CNAME <code>&lt;hostname&gt; → &lt;uuid&gt;.cfargotunnel.com</code>.
+              DNS e ingress são coisas separadas: o hostname aqui precisa existir no YAML do túnel para funcionar.</p>
+            <div class="inline-row">
+              <label for="select-dns">Túnel:</label>
+              <select class="form-control" id="select-dns"></select>
+            </div>
+            <label class="field-label" for="dns-hostnames">Hostnames (um por linha)</label>
+            <textarea class="form-control" id="dns-hostnames" rows="5" spellcheck="false" placeholder="api.exemplo.com&#10;app.exemplo.com"></textarea>
+            <div class="panel-actions">
+              <button class="btn btn-primary" data-action="create-dns">🌐 Criar registros</button>
+            </div>
+            <div id="dns-results"></div>
+          </div>
+        </section>
+
+        <!-- ==================== SERVIÇO ==================== -->
+        <section class="view-panel" id="view-service">
+          <div class="panel">
+            <div class="inline-row">
+              <label for="select-service">Túnel:</label>
+              <select class="form-control" id="select-service"></select>
+              <button class="btn btn-secondary btn-sm" data-action="refresh-service">🔄 Atualizar estado</button>
+            </div>
+            <div id="service-state" class="service-state"></div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Controle do serviço</h2>
+            <div class="button-row">
+              <button class="btn btn-primary btn-sm" data-action="service-start">▶ Iniciar</button>
+              <button class="btn btn-secondary btn-sm" data-action="service-stop">⏹ Parar</button>
+              <button class="btn btn-secondary btn-sm" data-action="service-restart">🔄 Reiniciar</button>
+              <button class="btn btn-secondary btn-sm" data-action="service-enable">🔌 Ativar no boot</button>
+              <button class="btn btn-secondary btn-sm" data-action="service-disable">🚫 Desativar no boot</button>
+              <button class="btn btn-danger btn-sm" data-action="service-remove">🗑 Remover unidade</button>
+            </div>
+            <p class="panel-hint" id="service-mode-hint"></p>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Executar manualmente (foreground)</h2>
+            <div class="button-row">
+              <button class="btn btn-primary btn-sm" data-action="run-start">▶ Executar</button>
+              <button class="btn btn-secondary btn-sm" data-action="run-stop">⏹ Encerrar</button>
+              <button class="btn btn-secondary btn-sm" data-action="run-clear">🧹 Limpar</button>
+            </div>
+            <pre class="console" id="run-console">A execução manual do túnel aparece aqui.</pre>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Logs do serviço</h2>
+            <div class="button-row">
+              <button class="btn btn-secondary btn-sm" data-action="logs-snapshot">📜 Últimas linhas</button>
+              <button class="btn btn-secondary btn-sm" data-action="logs-follow">📡 Acompanhar ao vivo</button>
+              <button class="btn btn-secondary btn-sm" data-action="logs-unfollow">⏹ Parar acompanhamento</button>
+              <label class="inline-row compact">
+                <span>linhas</span>
+                <input type="number" class="form-control input-xs" id="logs-lines" value="200" min="20" max="2000">
+              </label>
+            </div>
+            <pre class="console" id="service-console">Use os botões acima para carregar os logs.</pre>
+          </div>
+        </section>
+
+        <!-- ================== CONFIGURAÇÕES ================= -->
+        <section class="view-panel" id="view-settings">
+          <div class="panel">
+            <h2 class="panel-title">cloudflared</h2>
+            <div id="settings-cli" class="kv-list"></div>
+            <div class="button-row">
+              <button class="btn btn-primary btn-sm" data-action="install-cli">⬇ Instalar / atualizar</button>
+              <button class="btn btn-secondary btn-sm" data-action="login">🔑 Autenticar na Cloudflare</button>
+              <button class="btn btn-danger btn-sm" data-action="uninstall-cli">🗑 Desinstalar pacote</button>
+            </div>
+            <pre class="console hidden" id="install-console"></pre>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Como rodar o serviço</h2>
+            <p class="panel-hint">No Linux você escolhe onde as unidades vivem. Mudar de modo não move unidades
+              já criadas — remova e recrie a unidade do túnel se trocar.</p>
+            <div id="service-modes" class="mode-options"></div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Backup</h2>
+            <p class="panel-hint">Empacota <code>~/.cloudflared</code> em <code>.tar.gz</code>. O arquivo contém
+              credenciais secretas — guarde criptografado.</p>
+            <div class="button-row">
+              <button class="btn btn-primary btn-sm" data-action="backup-default">💾 Backup em ~/cloudflared-backups</button>
+              <button class="btn btn-secondary btn-sm" data-action="backup-choose">📂 Escolher destino…</button>
+              <button class="btn btn-secondary btn-sm" data-action="open-backup-dir">📁 Abrir pasta de backups</button>
+            </div>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Limpeza</h2>
+            <div class="button-row">
+              <button class="btn btn-danger btn-sm" data-action="remove-all-units">🧹 Remover todas as unidades do manager</button>
+            </div>
+            <p class="panel-hint">Remove os serviços criados por este app. Não apaga túneis remotos nem
+              arquivos em <code>~/.cloudflared</code>.</p>
+          </div>
+
+          <div class="panel">
+            <h2 class="panel-title">Sobre</h2>
+            <div id="settings-about" class="kv-list"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- ================== MODAL: CONFIRMAÇÃO ================== -->
+  <div class="modal-overlay" id="modal-confirm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="confirm-title">Confirmar</h3>
+        <button class="btn btn-icon btn-secondary" data-action="confirm-cancel">✕</button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-message"></p>
+        <div class="field-group hidden" id="confirm-typed-group">
+          <label class="field-label" for="confirm-typed">Digite <strong id="confirm-typed-word"></strong> para continuar:</label>
+          <input type="text" class="form-control" id="confirm-typed" autocomplete="off">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="confirm-cancel">Cancelar</button>
+        <button class="btn btn-danger" id="confirm-ok" data-action="confirm-ok">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL: LOGIN ===================== -->
+  <div class="modal-overlay" id="modal-login">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3>Autenticar na Cloudflare</h3>
+        <button class="btn btn-icon btn-secondary" data-action="login-cancel">✕</button>
+      </div>
+      <div class="modal-body">
+        <p>O navegador deve abrir automaticamente. Autorize o domínio e volte para esta janela.</p>
+        <p class="panel-hint">Se o navegador não abrir, use o link:
+          <a href="#" id="login-url" class="link">aguardando…</a></p>
+        <pre class="console small" id="login-console">Iniciando `cloudflared tunnel login`…</pre>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-action="login-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toast-stack"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

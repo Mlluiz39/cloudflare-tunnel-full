@@ -1,0 +1,61 @@
+{
+  "name": "cloudflare-tunnel-manager",
+  "productName": "Cloudflare Tunnel Manager",
+  "version": "3.2.0",
+  "description": "GUI desktop multiplataforma para gerenciar Cloudflare Tunnels (Linux, macOS, Windows)",
+  "main": "src/main/main.js",
+  "author": {
+    "name": "Marcelo Luiz",
+    "email": "mlluiz39@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "test": "node scripts/test-backend.js",
+    "test:publish": "node scripts/test-publish.js",
+    "test:services": "node scripts/test-services.js",
+    "test:smoke": "electron scripts/smoke.js --no-sandbox",
+    "test:all": "npm run test && npm run test:publish && npm run test:services && npm run test:smoke",
+    "icon": "node scripts/generate-icon.js",
+    "lint": "node scripts/lint.js",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:linux": "electron-builder --linux",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win"
+  },
+  "dependencies": {
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "build": {
+    "appId": "com.mlluiz39.cloudflare-tunnel-manager",
+    "productName": "Cloudflare Tunnel Manager",
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "category": "Network",
+      "icon": "assets/icon.png",
+      "maintainer": "Marcelo Luiz <mlluiz39@users.noreply.github.com>"
+    },
+    "mac": {
+      "target": ["dmg"],
+      "category": "public.app-category.developer-tools",
+      "icon": "assets/icon.png"
+    },
+    "win": {
+      "target": ["nsis"],
+      "icon": "assets/icon.png"
+    }
+  }
+}
