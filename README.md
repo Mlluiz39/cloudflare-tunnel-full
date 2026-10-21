@@ -49,6 +49,18 @@ Você digita um subdomínio, escolhe a porta do seu serviço local e clica em um
 
 ## 📥 Baixar e instalar
 
+### Antes de instalar, você precisa de
+
+| Requisito | Detalhe |
+| --- | --- |
+| **Conta na Cloudflare** | Gratuita — crie em [dash.cloudflare.com/sign-up](https://dash.cloudflare.com/sign-up). O Cloudflare Tunnel faz parte do plano **Free** do Zero Trust: **não precisa de cartão de crédito nem de plano pago**. |
+| **Um domínio na sua conta Cloudflare** | É ele que vai receber os subdomínios (`api.seudominio.com`). O domínio precisa estar usando os **nameservers da Cloudflare** (o painel avisa se ainda não estiver). Sem domínio na conta, o app não tem para onde publicar. |
+| **Permissão de administrador na máquina** | Necessária **uma vez**, para instalar o `cloudflared` (senha do `sudo` no Linux, senha do usuário no macOS, confirmação do UAC no Windows). No modo de serviço *sistema* a senha é pedida a cada ação; no modo *usuário* (padrão) não. |
+
+> Exceção: se você não tem domínio na Cloudflare, o caminho tradicional é o túnel rápido (`trycloudflare.com`, sem conta). Este app gerencia **túneis nomeados**, que exigem domínio — é o que dá endereços estáveis e DNS próprio.
+
+### Instalação
+
 Baixe o instalador do seu sistema em [**Releases**](https://github.com/mlluiz39/cloudflare-tunnel-full/releases).
 
 | Sistema | Arquivo | Arquitetura | Como instalar |
@@ -532,7 +544,7 @@ Isso funciona sem runner nativo porque o projeto não tem dependências nativas 
 ## ❓ FAQ
 
 **Preciso de conta paga na Cloudflare?**
-Não. O Cloudflare Tunnel (Zero Trust) funciona no plano gratuito para uso pessoal. O domínio precisa estar usando os nameservers da Cloudflare.
+Não — basta uma conta gratuita. O Cloudflare Tunnel faz parte do plano **Free** do Zero Trust, sem cartão de crédito. O único pré-requisito é ter o domínio na sua conta, usando os nameservers da Cloudflare (veja [Antes de instalar](#antes-de-instalar-você-precisa-de)).
 
 **O app substitui o `cloudflared`?**
 Não — ele instala e opera o binário oficial. Você pode continuar usando o terminal normalmente; os arquivos são os mesmos.
