@@ -1,7 +1,7 @@
 {
   "name": "cloudflare-tunnel-manager",
   "productName": "Cloudflare Tunnel Manager",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "description": "GUI desktop multiplataforma para gerenciar Cloudflare Tunnels (Linux, macOS, Windows)",
   "main": "src/main/main.js",
   "author": {

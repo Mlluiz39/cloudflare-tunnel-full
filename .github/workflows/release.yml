@@ -79,6 +79,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Histórico completo + tags: as notas saem do `git log` entre a tag
+      # anterior e a atual.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - name: Baixar todos os instaladores
         uses: actions/download-artifact@v4
         with:
@@ -88,10 +94,48 @@ jobs:
       - name: Listar arquivos
         run: ls -lh dist
 
+      # O GitHub só monta "What's Changed" a partir de pull requests. Como aqui
+      # se commita direto na main, as notas são geradas dos commits da tag.
+      - name: Montar notas da release
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          PREV=$(git describe --tags --abbrev=0 "${TAG}^" 2>/dev/null || true)
+
+          if [ -n "$PREV" ]; then
+            RANGE="${PREV}..${TAG}"
+            HEADING="Mudanças desde ${PREV}"
+          else
+            RANGE="${TAG}"
+            HEADING="Primeira release"
+          fi
+
+          {
+            echo "## ${HEADING}"
+            echo
+            git log --no-merges --pretty=format:'- %s (`%h`)' "$RANGE"
+            echo
+            echo
+            if [ -n "$PREV" ]; then
+              echo "**Changelog completo**: https://github.com/${GITHUB_REPOSITORY}/compare/${PREV}...${TAG}"
+              echo
+            fi
+            echo "---"
+            echo
+            echo "| Sistema | Arquitetura |"
+            echo "| --- | --- |"
+            echo "| Linux (AppImage / deb) | x64 (amd64) |"
+            echo "| macOS (dmg) | Intel (x64) e Apple Silicon (arm64) |"
+            echo "| Windows (exe) | x64 |"
+            echo
+            echo "> Requer o \`cloudflared\`, que o próprio app instala em **Configurações → Instalar/atualizar**."
+          } > notes.md
+
+          echo "----- notas geradas -----"
+          cat notes.md
+
       - name: Publicar na Release
         uses: softprops/action-gh-release@v2
         with:
-          # Notas montadas pelo GitHub a partir dos commits desta tag.
-          generate_release_notes: true
+          body_path: notes.md
           files: dist/*
           fail_on_unmatched_files: false

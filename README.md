@@ -51,12 +51,15 @@ Você digita um subdomínio, escolhe a porta do seu serviço local e clica em um
 
 Baixe o instalador do seu sistema em [**Releases**](https://github.com/mlluiz39/cloudflare-tunnel-full/releases).
 
-| Sistema | Arquivo | Como instalar |
-| --- | --- | --- |
-| **Linux** | `.AppImage` (portátil) | `chmod +x Cloudflare*.AppImage` e dê dois cliques |
-| **Linux** (Debian/Ubuntu/Pop!_OS) | `.deb` | `sudo apt install ./cloudflare-tunnel-manager_*_amd64.deb` |
-| **macOS** | `.dmg` | Abra o `.dmg` e arraste o app para *Aplicativos* |
-| **Windows** | `.exe` | Execute o instalador (NSIS) |
+| Sistema | Arquivo | Arquitetura | Como instalar |
+| --- | --- | --- | --- |
+| **Linux** | `.AppImage` (portátil) | x64 | `chmod +x Cloudflare*.AppImage` e dê dois cliques |
+| **Linux** (Debian/Ubuntu/Pop!_OS) | `.deb` | amd64 | `sudo apt install ./cloudflare-tunnel-manager_*_amd64.deb` |
+| **macOS** | `.dmg` | **Intel (x64)** | Abra o `.dmg` e arraste o app para *Aplicativos* |
+| **macOS** | `-arm64.dmg` | **Apple Silicon (M1–M4)** | idem |
+| **Windows** | `.exe` (NSIS) | x64 | Execute o instalador |
+
+> **Qual .dmg baixar?** Se o "Sobre este Mac" mostrar *Chip Apple M1/M2/M3/M4*, use o `-arm64.dmg`; se mostrar *Intel*, use o `.dmg` sem sufixo. Os dois são gerados no mesmo build.
 
 **Não é preciso instalar o `cloudflared` nem o Node.js.** O aplicativo baixa e instala o binário oficial do Cloudflare pela própria interface (**Configurações → ⬇ Instalar / atualizar**).
 
