@@ -516,6 +516,17 @@ npm run dist:win     # exe (NSIS)
 
 Publicar uma tag `v*` dispara o GitHub Actions, que gera os instaladores dos três sistemas e anexa na Release.
 
+**Arquiteturas por padrão:** Linux e Windows saem em **x64**; o macOS sai em **x64 + arm64** (os dois `.dmg`, compilados no mesmo runner arm64). Se um dia quiser `arm64` também para Linux e Windows, basta acrescentar `--arm64` aos `args` das respectivas entradas da matriz em `.github/workflows/release.yml`:
+
+```yaml
+- os: ubuntu-latest
+  args: --linux --x64 --arm64      # gera AppImage/deb x64 e arm64
+- os: windows-latest
+  args: --win --x64 --arm64        # gera instaladores x64 e arm64
+```
+
+Isso funciona sem runner nativo porque o projeto não tem dependências nativas (só `js-yaml`, JS puro) — o electron-builder baixa o binário do Electron da arquitetura alvo. O custo é dois artefatos a mais por release e alguns segundos de build.
+
 ---
 
 ## ❓ FAQ
